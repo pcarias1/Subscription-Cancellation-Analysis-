@@ -30,6 +30,7 @@ SQL:
 * CTEs
 * CASE statements
 * Aggregations
+* Union
 * Window functions
 * View creation
 
