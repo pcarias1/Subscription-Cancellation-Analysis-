@@ -1,0 +1,32 @@
+-- Subscription Cancellation Analysis
+-- Goal: Calculate the average number of cancellation reasons selected per subscription.
+
+-- Step 1: Create a CTE to flag which reasons were selected.
+-- Each reason column (1st, 2nd, 3rd) is converted to a binary indicator (1 = selected, 0 = not selected).
+-- Note: All users are required to provide the first reason, while the 2nd and 3rd are optional.
+
+WITH cancels AS (
+    SELECT 
+        subscription_id,
+
+        -- Flag whether each reason field is populated
+        CASE WHEN cancelation_reason1 IS NOT NULL THEN 1 ELSE 0 END AS has_reason_1,
+        CASE WHEN cancelation_reason2 IS NOT NULL THEN 1 ELSE 0 END AS has_reason_2,
+        CASE WHEN cancelation_reason3 IS NOT NULL THEN 1 ELSE 0 END AS has_reason_3,
+
+        -- Total number of reasons provided by a user (1 to 3)
+        has_reason_1 + has_reason_2 + has_reason_3 AS total_reasons,
+
+        -- Count of *additional* reasons (i.e., reasons beyond the first required one)
+        has_reason_2 + has_reason_3 AS additional_reasons
+
+    FROM 
+        public.cancelations
+)
+
+-- Step 2: Calculate the average number of total and additional reasons selected per subscription
+SELECT 
+    AVG(total_reasons) AS avg_total_per_sub,
+    AVG(additional_reasons) AS avg_additional_per_sub
+FROM 
+    cancels 
