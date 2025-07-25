@@ -1,0 +1,100 @@
+--------------------------------------------------------------
+-- Part 1: Count Total Cancellations by Reason 
+-- Goal: Identify the most common cancellation reasons overall,
+--       regardless of their position (1st, 2nd, or 3rd).
+-- Note: UNION is used (not UNION ALL) to count each reason only
+--       once per subscription.
+--------------------------------------------------------------
+
+WITH cancel_subs AS (
+    SELECT 
+        subscription_id, 
+        cancelation_reason1 AS cancelation_reason
+    FROM public.cancelations
+
+    UNION  -- Removes duplicates per subscription
+
+    SELECT 
+        subscription_id, 
+        cancelation_reason2 AS cancelation_reason
+    FROM public.cancelations
+
+    UNION
+
+    SELECT 
+        subscription_id, 
+        cancelation_reason3 AS cancelation_reason
+    FROM public.cancelations
+)
+
+SELECT 
+    cancelation_reason, 
+    COUNT(subscription_id) AS num_subs
+FROM 
+    cancel_subs
+GROUP BY 
+    cancelation_reason;
+
+--Result 
+--| CANCELATION_REASON       | NUM_SUBS        |
+--|--------------------------|-----------------|
+--| Expensive                | 13              |
+--| Went to a competitor     | 13              |
+--| Not useful               | 10              |
+--| Bad customer service     | 8               |
+--| Null                     | 14              |
+
+
+
+--------------------------------------------------------------
+-- Part 2: Create Long Format View with Reason Position Labels
+-- Goal: Flatten cancellation_reason1, 2, 3 into one column,
+--       and assign a number to indicate the selection order.
+-- This view will be used in Part 3 for position-based analysis.
+--------------------------------------------------------------
+
+CREATE OR REPLACE VIEW junk.all_cancelation_reasons_Pearley AS
+SELECT 
+    subscription_id, 
+    cancel_date,
+    cancelation_reason1 AS cancelation_reason, 
+    1 AS reason_number
+FROM public.cancelations
+
+UNION
+
+SELECT 
+    subscription_id, 
+    cancel_date,
+    cancelation_reason2 AS cancelation_reason, 
+    2 AS reason_number
+FROM public.cancelations
+
+UNION
+
+SELECT 
+    subscription_id, 
+    cancel_date,
+    cancelation_reason3 AS cancelation_reason, 
+    3 AS reason_number
+FROM public.cancelations;
+
+
+
+--------------------------------------------------------------
+-- Part 3: Analyze Cancellation Reasons by Their Position
+-- Goal: Determine which reasons are most common as the
+--       primary (1st), secondary (2nd), or tertiary (3rd) reason.
+-- Useful for identifying key drivers versus supporting factors.
+--------------------------------------------------------------
+
+SELECT 
+    cancelation_reason, 
+    reason_number,  -- 1 = primary, 2 = secondary, 3 = tertiary
+    COUNT(subscription_id) AS num_subs
+FROM 
+    junk.all_cancelation_reasons_Pearley
+GROUP BY 
+    cancelation_reason, 
+    reason_number;
+
