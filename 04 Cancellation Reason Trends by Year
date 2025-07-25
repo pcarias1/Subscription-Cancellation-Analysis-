@@ -1,0 +1,30 @@
+-- Goal: Analyze how cancellation reasons vary by year and calculate the percentage each reason contributes annually.
+-- This helps identify shifting customer sentiments or emerging trends over time.
+
+
+with yearly as (
+select 
+    -- Extract year from cancellation date; "::date" ensured the value was casted to a date type as it was stored as a string or timestamp
+    date_trunc('year', cancel_date::date)as cancel_year, -- add why you used :: to data clean 
+    cancelation_reason, 
+
+    -- Count how many times each reason appears in a given year
+    count(*) as num_reason 
+from 
+    junk.all_cancelation_reasons_Pearley 
+group by
+    1,2
+) 
+
+select 
+    cancel_year, 
+    cancelation_reason, 
+    num_reason, 
+
+    -- Total number of reasons reported for the year
+    sum (num_reason) over (partition by cancel_year) as year_total , 
+  
+    -- Percentage share of each reason for the year
+    num_reason * 100 /  year_total as percent_reason_annual
+from 
+    yearly
