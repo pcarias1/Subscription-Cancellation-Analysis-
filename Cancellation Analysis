@@ -30,3 +30,7 @@ SELECT
     AVG(additional_reasons) AS avg_additional_per_sub
 FROM 
     cancels 
+
+--Results 
+--AVG_TOTAL_PER_SUB | AVG_ADDITIONAL_PER_SUB | 
+--2.181818          | 1.181818               | 
