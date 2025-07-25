@@ -98,3 +98,6 @@ GROUP BY
     cancelation_reason, 
     reason_number;
 
+--Result Visualization:
+-- For a bar chart visualizing this query refer to the "Breakdown of Cancellation Reasons by Selection Order"
+-- located in the README under the Results section.
